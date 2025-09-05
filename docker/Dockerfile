@@ -1,0 +1,68 @@
+ARG BASE_IMAGE=dustynv/l4t-ml:r36.4.0
+FROM ${BASE_IMAGE}
+SHELL ["/bin/bash","-lc"]
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl gnupg software-properties-common && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://repo.download.nvidia.com/jetson/jetson-ota-public.asc \
+  | gpg --dearmor -o /usr/share/keyrings/nvidia-jetson.gpg && \
+  echo "deb [signed-by=/usr/share/keyrings/nvidia-jetson.gpg] https://repo.download.nvidia.com/jetson/common r36.4 main" \
+    > /etc/apt/sources.list.d/nvidia-jetson-common.list && \
+  echo "deb [signed-by=/usr/share/keyrings/nvidia-jetson.gpg] https://repo.download.nvidia.com/jetson/t234 r36.4 main" \
+    > /etc/apt/sources.list.d/nvidia-jetson-t234.list
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      gstreamer1.0-tools v4l-utils libopenblas0 libgomp1 python3-pip python3-dev git \
+      build-essential cmake ninja-build \
+      libprotobuf-dev protobuf-compiler libz-dev \
+      libnvvpi3 vpi3-dev vpi3-samples python3.10-vpi3 \
+      nvidia-tensorrt nvidia-tensorrt-dev python3-libnvinfer python3-libnvinfer-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN PIP_INDEX_URL=https://pypi.org/simple PIP_EXTRA_INDEX_URL= \
+    pip3 install --upgrade \
+      pip setuptools wheel && \
+    PIP_INDEX_URL=https://pypi.org/simple PIP_EXTRA_INDEX_URL= \
+    pip3 install --no-cache-dir --prefer-binary \
+      "numpy==1.26.4" pillow jetson-stats
+
+ENV PATH=/usr/bin:$PATH \
+    CMAKE_BUILD_PARALLEL_LEVEL=2 \
+    CMAKE_ARGS="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+RUN pip3 uninstall -y cmake || true
+
+RUN PIP_INDEX_URL=https://pypi.org/simple PIP_EXTRA_INDEX_URL= \
+    pip3 install --no-cache-dir --prefer-binary --use-pep517 \
+      "onnx>=1.15" "onnxsim==0.4.36"
+
+RUN PIP_INDEX_URL=https://pypi.org/simple PIP_EXTRA_INDEX_URL= \
+    pip3 install --no-cache-dir --prefer-binary \
+      "onnxslim==0.1.65" polygraphy onnx-graphsurgeon && \
+    pip3 install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ \
+      "ultralytics[export]"
+
+RUN pip3 uninstall -y onnxruntime || true && \
+    pip3 install --no-cache-dir --prefer-binary \
+        --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 \
+        --extra-index-url https://pypi.org/simple \
+      onnxruntime-gpu
+
+RUN pip3 install --no-cache-dir --prefer-binary \
+        --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 \
+        --extra-index-url https://pypi.org/simple \
+      opencv-contrib-python
+
+RUN PIP_INDEX_URL=https://pypi.org/simple PIP_EXTRA_INDEX_URL= \
+    pip3 install --no-cache-dir --prefer-binary \
+      pygame pynmea2 pyserial supervision
+
+ARG APP_NAME=sonar
+WORKDIR /opt/${APP_NAME}
+ENV PYTHONPATH=/opt/${APP_NAME}
+ENV YOLO_CONFIG_DIR=/opt/${APP_NAME}/yolo
+
+CMD ["/bin/bash"]

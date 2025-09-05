@@ -1,0 +1,21 @@
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "/opt/sonar/datasets",
+  "weights_dir": "weights",
+  "runs_dir": "runs",
+  "uuid": "a9763315eac5687fd760911ed5e2042f468209ff5e53fe8c1d513d6140e168e3",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}
