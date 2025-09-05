@@ -18,13 +18,19 @@ CAM_DEV=${CAM_DEV:-/dev/video0}
 DOCKER_FLAGS=(
   --rm -it
   --net=host --ipc=host
-  --device "${CAM_DEV}:/dev/video0"
   -v /tmp/argus_socket:/tmp/argus_socket
   -v "$(cd .. && pwd)":/opt/${APP_NAME}
   -v /run/jtop.sock:/run/jtop.sock
   -w /opt/${APP_NAME}
   --name ${APP_NAME}
 )
+
+# Optionally add camera device if present
+if [ -e "${CAM_DEV}" ]; then
+  DOCKER_FLAGS+=(--device "${CAM_DEV}:/dev/video0")
+else
+  echo "Warning: camera device ${CAM_DEV} not found; continuing without video"
+fi
 
 USE_CDI=false
 if command -v nvidia-ctk >/dev/null 2>&1; then
