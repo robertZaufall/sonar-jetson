@@ -1,0 +1,10 @@
+ARG BASE_IMAGE=sonar_base:latest
+FROM ${BASE_IMAGE}
+SHELL ["/bin/bash","-lc"]
+
+ARG APP_NAME=sonar
+WORKDIR /opt/${APP_NAME}
+ENV PYTHONPATH=/opt/${APP_NAME}
+ENV YOLO_CONFIG_DIR=/opt/${APP_NAME}/yolo
+
+CMD ["/bin/bash"]

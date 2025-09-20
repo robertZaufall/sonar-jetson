@@ -59,10 +59,3 @@ RUN pip3 install --no-cache-dir --prefer-binary \
 RUN PIP_INDEX_URL=https://pypi.org/simple PIP_EXTRA_INDEX_URL= \
     pip3 install --no-cache-dir --prefer-binary \
       pygame pynmea2 pyserial supervision
-
-ARG APP_NAME=sonar
-WORKDIR /opt/${APP_NAME}
-ENV PYTHONPATH=/opt/${APP_NAME}
-ENV YOLO_CONFIG_DIR=/opt/${APP_NAME}/yolo
-
-CMD ["/bin/bash"]
